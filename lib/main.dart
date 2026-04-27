@@ -81,3 +81,78 @@ class _CameraScreenState extends State<CameraScreen> {
     );
   }
 }
+
+class _CameraScreenState extends State<CameraScreen> {
+  late CameraController _controller;
+  late Future<void> _initializeControllerFuture;
+  
+  // ★追加: 現在選択されているカメラのインデックス（0:背面, 1:前面）
+  int _selectedCameraIndex = 0; 
+
+  @override
+  void initState() {
+    super.initState();
+    _initCamera(_selectedCameraIndex); // ★変更: 関数に分けた
+  }
+
+  // ★追加: カメラを初期設定する関数
+  void _initCamera(int cameraIndex) {
+    if (cameras.isEmpty) return;
+    _controller = CameraController(cameras[cameraIndex], ResolutionPreset.high);
+    _initializeControllerFuture = _controller.initialize();
+  }
+
+  // ★追加: 前面・背面カメラを切り替える関数
+  void _switchCamera() {
+    if (cameras.length < 2) return;
+    setState(() {
+      _selectedCameraIndex = _selectedCameraIndex == 0 ? 1 : 0;
+      _initCamera(_selectedCameraIndex);
+    });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (cameras.isEmpty) {
+      return const Scaffold(body: Center(child: Text('カメラが見つかりません')));
+    }
+
+    return Scaffold(
+      // ★変更: Stackを使って映像の上にボタンを重ねる
+      body: Stack(
+        children: [
+          Positioned.fill(
+            child: FutureBuilder<void>(
+              future: _initializeControllerFuture,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.done) {
+                  return CameraPreview(_controller);
+                } else {
+                  return const Center(child: CircularProgressIndicator());
+                }
+              },
+            ),
+          ),
+          
+          // ★追加: 画面右下に切り替えボタンを配置
+          Positioned(
+            bottom: 40,
+            right: 40,
+            child: FloatingActionButton(
+              heroTag: 'switch_btn',
+              backgroundColor: Colors.black54,
+              onPressed: _switchCamera,
+              child: const Icon(Icons.flip_camera_ios, color: Colors.white),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
