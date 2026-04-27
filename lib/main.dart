@@ -1,4 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:permission_handler/permission_handler.dart';
+
+import 'app/router.dart';
+import 'app/theme.dart';
 import 'package:camera/camera.dart';
 
 // 端末で利用可能なカメラのリスト
@@ -15,7 +20,15 @@ Future<void> main() async {
     debugPrint('カメラの取得エラー: ${e.code}, ${e.description}');
   }
   
-  runApp(const MyApp());
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await _requestPermissions();
+
+  runApp(const ProviderScope(child: MyApp()));
+}
+
+Future<void> _requestPermissions() async {
+  await [Permission.camera, Permission.photos].request();
 }
 
 class MyApp extends StatelessWidget {
