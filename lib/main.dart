@@ -156,3 +156,89 @@ class _CameraScreenState extends State<CameraScreen> {
     );
   }
 }
+
+class _CameraScreenState extends State<CameraScreen> {
+  late CameraController _controller;
+  late Future<void> _initializeControllerFuture;
+  int _selectedCameraIndex = 0; 
+  
+  // ★追加: 撮影した画像データを保持する変数
+  XFile? _capturedImage;
+
+  // ... (initState, _initCamera, _switchCamera, dispose はそのまま) ...
+
+  // ★追加: シャッターを切る関数
+  Future<void> _takePicture() async {
+    try {
+      await _initializeControllerFuture;
+      final image = await _controller.takePicture();
+      
+      setState(() {
+        _capturedImage = image; // 変数に画像を保存
+      });
+      
+      debugPrint("📸 撮影成功: ${image.path}");
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('撮影しました！')),
+        );
+      }
+    } catch (e) {
+      debugPrint("撮影エラー: $e");
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (cameras.isEmpty) {
+      return const Scaffold(body: Center(child: Text('カメラが見つかりません')));
+    }
+
+    return Scaffold(
+      body: Stack(
+        children: [
+          Positioned.fill(
+            child: FutureBuilder<void>(
+              future: _initializeControllerFuture,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.done) {
+                  return CameraPreview(_controller);
+                } else {
+                  return const Center(child: CircularProgressIndicator());
+                }
+              },
+            ),
+          ),
+          
+          // 右下の切り替えボタン
+          Positioned(
+            bottom: 40,
+            right: 40,
+            child: FloatingActionButton(
+              heroTag: 'switch_btn',
+              backgroundColor: Colors.black54,
+              onPressed: _switchCamera,
+              child: const Icon(Icons.flip_camera_ios, color: Colors.white),
+            ),
+          ),
+
+          // ★追加: 中央下のシャッターボタン
+          Align(
+            alignment: Alignment.bottomCenter,
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 40.0),
+              child: FloatingActionButton(
+                heroTag: 'shutter_btn',
+                onPressed: _takePicture,
+                backgroundColor: Colors.white,
+                shape: const CircleBorder(),
+                child: const Icon(Icons.camera_alt, color: Colors.black, size: 30),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
