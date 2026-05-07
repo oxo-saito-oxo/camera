@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../features/camera/camera_screen.dart';
+
 class AppRoutes {
   static const camera = '/';
   static const editor = '/editor';
@@ -12,7 +14,7 @@ final appRouter = GoRouter(
   routes: [
     GoRoute(
       path: AppRoutes.camera,
-      builder: (context, state) => const _PlaceholderScreen(title: 'カメラ画面'),
+      builder: (context, state) => const CameraScreen(),
     ),
 
     GoRoute(
