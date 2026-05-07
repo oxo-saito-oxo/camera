@@ -169,7 +169,7 @@ class _CameraScreenState extends State<CameraScreen> {
                   // 画像が邪魔でボタンが押せなくなるのを防ぐ
                   child: Image.file(
                     File(_guideImage!.path),
-                    fit: BoxFit.cover, // 画面いっぱいに広げる
+                    fit: BoxFit.contain, // 画像全体の形（縦横の比率）を崩さずに、そのままのサイズ感で画面に収める
                   ),
                 ),
               ),
