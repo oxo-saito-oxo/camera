@@ -6,13 +6,11 @@ import 'features/camera/camera_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
   try {
     cameras = await availableCameras();
   } on CameraException catch (e) {
     debugPrint('カメラの取得エラー: ${e.code}, ${e.description}');
   }
-
   runApp(const ProviderScope(child: MyApp()));
 }
 
