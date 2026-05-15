@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
+import 'package:image_gallery_saver_plus/image_gallery_saver_plus.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
 // 端末で利用可能なカメラのリスト
@@ -104,6 +105,7 @@ class _CameraScreenState extends State<CameraScreen> {
     if (controller == null || !controller.value.isInitialized) return;
 
     try {
+      // 1. カメラで撮影（この画像にはオーバーレイは含まれません）
       final image = await controller.takePicture();
       if (!mounted) return;
 
@@ -111,9 +113,20 @@ class _CameraScreenState extends State<CameraScreen> {
         _capturedImage = image;
       });
 
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('撮影しました！')));
+      // 2. カメラロールに保存する
+      final result = await ImageGallerySaverPlus.saveFile(image.path);
+
+      if (!mounted) return;
+
+      if (result['isSuccess'] == true) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('カメラロールに保存しました！')),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('保存に失敗しました')),
+        );
+      }
     } catch (e) {
       debugPrint('撮影エラー: $e');
     }
